@@ -20,8 +20,8 @@
 - **Use existing patterns** - check completed code for consistency
 
 ### Last Updated:
-- **Task**: 001
-- **Time**: 2025-05-24T14:32:41Z
+- **Task**: 002
+- **Time**: 2025-05-24T14:53:28Z
 - **Agent**: ChatGPT
 
 ---
@@ -31,7 +31,7 @@
 ### Phase 1: Protocol Layer Setup
 
 - [x] 001. Add VideoSubmissionStatus enum to protocol.py
-- [ ] 002. Create VideoMetadata class with ipfs_hash field
+- [x] 002. Create VideoMetadata class with ipfs_hash field
 - [ ] 003. Add post_id and platform fields to VideoMetadata
 - [ ] 004. Add title and description fields to VideoMetadata
 - [ ] 005. Add duration_seconds and file_size_bytes to VideoMetadata

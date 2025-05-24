@@ -14,6 +14,12 @@ class VideoSubmissionStatus(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+
+class VideoMetadata(bt.Synapse):
+    """Metadata information for a submitted video."""
+
+    ipfs_hash: str = Field("", title="IPFS Hash", frozen=False)
+
 class QuerySynapse(bt.Synapse):
     """
     A basic query synapse for subnet communication.
