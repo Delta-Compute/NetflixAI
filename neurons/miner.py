@@ -3,8 +3,13 @@
 
 import time
 import typing
+import asyncio
+from collections import deque
 import bittensor as bt
 from template.protocol import QuerySynapse, DataSynapse
+from utils.ipfs_client import IPFSClient
+from utils.video_processor import VideoProcessor
+from utils.storage_manager import StorageManager
 
 class Miner:
     """
@@ -17,6 +22,18 @@ class Miner:
         self.setup_logging()
         self.setup_bittensor()
         self.setup_axon()
+
+        # IPFS client and helpers
+        gateway = getattr(self.config, "ipfs_gateway", "http://localhost:5001")
+        self.ipfs = IPFSClient(gateway)
+        self.video_processor = VideoProcessor()
+        self.storage = StorageManager("miner_storage")
+
+        # Submission handling
+        self.submission_queue: asyncio.Queue[str] = asyncio.Queue()
+        self.submissions: dict[str, dict] = {}
+        self.recent_hashes: set[str] = set()
+        self.last_submission_time = 0.0
         
     def get_config(self):
         """Setup configuration for the miner."""
@@ -119,17 +136,56 @@ class Miner:
         # TODO: Implement your priority logic
         # For now, all requests have the same priority
         return 0.0
+
+    async def handle_video_submission(self, file_path: str) -> str:
+        """Validate, upload, and track a video submission."""
+        if time.time() - self.last_submission_time < 1:
+            raise RuntimeError("Rate limit exceeded")
+
+        if not self.video_processor.validate_video_file(
+            file_path, 1024 * 1024 * 1024, ["mp4", "mov", "mkv"]
+        ):
+            raise ValueError("Invalid video")
+
+        file_hash = self.video_processor.calculate_hash(file_path)
+        if file_hash in self.recent_hashes:
+            raise ValueError("Duplicate submission")
+
+        ipfs_hash = self.ipfs.upload_file(file_path)
+        self.recent_hashes.add(file_hash)
+        self.submissions[ipfs_hash] = {"status": "uploaded", "time": time.time()}
+        self.last_submission_time = time.time()
+        return ipfs_hash
+
+    async def handle_validation_request(self, synapse: DataSynapse) -> DataSynapse:
+        """Respond to validation status queries."""
+        try:
+            ipfs_hash = synapse.data.get("ipfs_hash")
+            status = self.submissions.get(ipfs_hash, {}).get("status", "unknown")
+            synapse.response = {"status": status}
+            synapse.successfully_processed = True
+        except Exception as e:
+            synapse.error_message = str(e)
+            synapse.successfully_processed = False
+        return synapse
+
+    def cleanup_submissions(self, max_age: float = 3600) -> None:
+        """Remove old tracked submissions."""
+        cutoff = time.time() - max_age
+        for key in list(self.submissions.keys()):
+            if self.submissions[key]["time"] < cutoff:
+                self.submissions.pop(key, None)
         
-    def run(self):
+    async def run_loop(self):
         """Main loop for the miner."""
         bt.logging.info("Starting miner...")
-        
+
         # Start the axon server
         self.axon.start()
-        
+
         bt.logging.info(f"Miner running on network: {self.subtensor.chain_endpoint}")
         bt.logging.info(f"Miner serving on: {self.axon.ip}:{self.axon.port}")
-        
+
         # Main loop
         step = 0
         while True:
@@ -137,18 +193,28 @@ class Miner:
                 # Check registration
                 if step % 5 == 0:
                     self.metagraph.sync(subtensor=self.subtensor)
-                    
+
                     if self.wallet.hotkey.ss58_address in self.metagraph.hotkeys:
                         my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
                         bt.logging.info(f"Miner running with UID: {my_uid}")
                     else:
                         bt.logging.warning("Miner not registered on network")
-                        
-                # TODO: Add any periodic tasks here
-                
+
+                # Process queued submissions
+                if not self.submission_queue.empty():
+                    file_path = await self.submission_queue.get()
+                    try:
+                        await self.handle_video_submission(file_path)
+                    except Exception as e:
+                        bt.logging.error(f"Submission error: {e}")
+
+                # Periodic cleanup
+                if step % 100 == 0:
+                    self.cleanup_submissions()
+
                 step += 1
-                time.sleep(12)  # Sleep for one block
-                
+                await asyncio.sleep(12)
+
             except KeyboardInterrupt:
                 bt.logging.info("Miner interrupted by user")
                 break
@@ -156,8 +222,12 @@ class Miner:
                 bt.logging.error(f"Error in main loop: {e}")
                 
         # Clean up
+
         self.axon.stop()
         bt.logging.info("Miner stopped")
+
+    def run(self):
+        asyncio.run(self.run_loop())
 
 if __name__ == "__main__":
     miner = Miner()
