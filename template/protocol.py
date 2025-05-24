@@ -106,3 +106,23 @@ class VideoValidationSynapse(bt.Synapse):
     computed_body_hash: str = Field("", title="Computed Body Hash", frozen=False)
 
 VideoValidationSynapse.required_hash_fields = ["submission_id"]
+
+
+class SocialPostSynapse(bt.Synapse):
+    """Synapse carrying social media post data and metrics."""
+
+    submission_id: str = Field("", title="Submission ID", frozen=False)
+    post_id: str = Field("", title="Post ID", frozen=False)
+    platform: str = Field("", title="Platform", frozen=False)
+    valid: bool = Field(False, title="Valid", frozen=False)
+    views: int = Field(0, title="Views", frozen=False)
+    likes: int = Field(0, title="Likes", frozen=False)
+    comments: int = Field(0, title="Comments", frozen=False)
+    shares: int = Field(0, title="Shares", frozen=False)
+    timestamp: float = Field(0.0, title="Timestamp", frozen=False)
+    successfully_processed: bool = Field(False, title="Successfully Processed", frozen=False)
+    error_message: str = Field("", title="Error Message", frozen=False)
+    computed_body_hash: str = Field("", title="Computed Body Hash", frozen=False)
+
+
+SocialPostSynapse.required_hash_fields = ["submission_id", "post_id", "platform"]

@@ -73,6 +73,22 @@ class Database:
             )
             """
         )
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS social_posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                submission_id TEXT,
+                post_id TEXT,
+                platform TEXT,
+                valid INTEGER,
+                views INTEGER DEFAULT 0,
+                likes INTEGER DEFAULT 0,
+                comments INTEGER DEFAULT 0,
+                shares INTEGER DEFAULT 0,
+                timestamp REAL
+            )
+            """
+        )
         conn.commit()
         self.release(conn)
 
@@ -131,6 +147,50 @@ class Database:
         conn.commit()
         self.release(conn)
 
+    def insert_social_post(
+        self,
+        submission_id: str,
+        post_id: str,
+        platform: str,
+        valid: bool,
+    ) -> None:
+        """Insert a verified social post."""
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO social_posts (
+                submission_id, post_id, platform, valid, timestamp
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (submission_id, post_id, platform, int(valid), time.time()),
+        )
+        conn.commit()
+        self.release(conn)
+
+    def update_social_metrics(
+        self,
+        post_id: str,
+        platform: str,
+        views: int,
+        likes: int,
+        comments: int,
+        shares: int,
+    ) -> None:
+        """Update engagement metrics for a post."""
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            UPDATE social_posts
+            SET views = ?, likes = ?, comments = ?, shares = ?
+            WHERE post_id = ? AND platform = ?
+            """,
+            (views, likes, comments, shares, post_id, platform),
+        )
+        conn.commit()
+        self.release(conn)
+
     def get_submission_history(self, limit: int = 100) -> list[tuple]:
         """Retrieve recent submission records."""
         conn = self.connect()
@@ -151,6 +211,7 @@ class Database:
         cur.execute("DELETE FROM submissions WHERE created_at < ?", (cutoff,))
         cur.execute("DELETE FROM engagement_metrics WHERE timestamp < ?", (cutoff,))
         cur.execute("DELETE FROM validation_results WHERE timestamp < ?", (cutoff,))
+        cur.execute("DELETE FROM social_posts WHERE timestamp < ?", (cutoff,))
         conn.commit()
         self.release(conn)
 
@@ -170,6 +231,9 @@ class Database:
         )
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_metrics_post_platform ON engagement_metrics(post_id, platform)"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_social_post ON social_posts(post_id, platform)"
         )
         conn.commit()
         self.release(conn)

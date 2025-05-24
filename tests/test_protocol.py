@@ -16,3 +16,9 @@ def test_video_submission_status_enum():
 def test_video_metadata_fields():
     meta = protocol.VideoMetadata(ipfs_hash="abc")
     assert meta.ipfs_hash == "abc"
+
+
+@pytest.mark.skipif(bittensor_missing, reason="bittensor not installed")
+def test_social_post_synapse():
+    syn = protocol.SocialPostSynapse(submission_id="s", post_id="p", platform="x")
+    assert syn.post_id == "p"
