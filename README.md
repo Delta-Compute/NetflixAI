@@ -2,6 +2,10 @@
 
 A Bittensor subnet template for building decentralized applications.
 
+This project demonstrates a simplified video validation subnet. Miners submit
+video data while validators perform basic checks and scoring. It is intended as
+a learning example rather than a production system.
+
 ## Overview
 
 This is a basic template for Subnet 89 on the Bittensor network. It includes the essential components needed to build and deploy miners and validators.

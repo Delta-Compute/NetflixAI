@@ -1,0 +1,10 @@
+version: '3'
+services:
+  miner:
+    build:
+      context: .
+      dockerfile: Dockerfile.miner
+  validator:
+    build:
+      context: .
+      dockerfile: Dockerfile.validator

@@ -5,6 +5,12 @@ import argparse
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Miner CLI")
+    parser.add_argument(
+        "--wallet.name", dest="wallet_name", default="default", help="Wallet name"
+    )
+    parser.add_argument(
+        "--wallet.hotkey", dest="wallet_hotkey", default="default", help="Wallet hotkey"
+    )
     sub = parser.add_subparsers(dest="command")
     submit = sub.add_parser("submit", help="Submit video")
     submit.add_argument("file", help="Path to video file")
@@ -17,7 +23,9 @@ def main(argv: list[str] | None = None) -> None:
     parser = create_parser()
     args = parser.parse_args(argv)
     if args.command == "submit":
-        print(f"Submitting {args.file}")
+        print(
+            f"Submitting {args.file} using wallet {args.wallet_name}/{args.wallet_hotkey}"
+        )
     elif args.command == "status":
         print("Miner running")
     elif args.command == "config":
