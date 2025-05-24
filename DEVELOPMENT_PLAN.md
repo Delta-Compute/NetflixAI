@@ -20,8 +20,8 @@
 - **Use existing patterns** - check completed code for consistency
 
 ### Last Updated:
-- **Task**: 004
-- **Time**: 2025-05-24T16:00:22Z
+- **Task**: 005
+- **Time**: 2025-05-24T16:13:59Z
 - **Agent**: ChatGPT
 
 ---
@@ -34,7 +34,7 @@
 - [x] 002. Create VideoMetadata class with ipfs_hash field
 - [x] 003. Add post_id and platform fields to VideoMetadata
 - [x] 004. Add title and description fields to VideoMetadata
-- [ ] 005. Add duration_seconds and file_size_bytes to VideoMetadata
+- [x] 005. Add duration_seconds and file_size_bytes to VideoMetadata
 - [ ] 006. Add mime_type field to VideoMetadata
 - [ ] 007. Set required_hash_fields for VideoMetadata
 - [ ] 008. Create VideoSubmissionSynapse class skeleton

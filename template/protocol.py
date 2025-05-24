@@ -23,6 +23,8 @@ class VideoMetadata(bt.Synapse):
     platform: str = Field("", title="Platform", frozen=False)
     title: str = Field("", title="Title", frozen=False)
     description: str = Field("", title="Description", frozen=False)
+    duration_seconds: int = Field(0, title="Duration Seconds", frozen=False)
+    file_size_bytes: int = Field(0, title="File Size Bytes", frozen=False)
 
 class QuerySynapse(bt.Synapse):
     """
