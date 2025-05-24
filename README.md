@@ -1,22 +1,22 @@
 # Subnet 89
 
-A Bittensor subnet template for building decentralized applications.
+An AI-driven video streaming platform built on Bittensor.
 
-This repository showcases an AI-driven video validation pipeline with IPFS
-storage and social engagement tracking.
+This repository contains both the Subnet 89 implementation and the user-facing
+application, including miners, validators, and an API server.
 
 ## Overview
 
-This is a basic template for Subnet 89 on the Bittensor network. It includes the essential components needed to build and deploy miners and validators.
+Subnet 89 includes the miner, validator, and API code needed to run the decentralized video streaming platform. The project is ready for customization and deployment.
 
 ## Structure
 
 ```
-Subnet89/
+NetflixAI/
 ├── neurons/          # Miner and validator implementations
 ├── template/         # Protocol definitions (synapses)
 ├── config/           # Configuration management
-├── utils/            # Utility functions
+├── utils/            # Helper modules and API server
 ├── requirements.txt  # Python dependencies
 └── setup.py         # Package setup
 ```
@@ -26,7 +26,6 @@ Subnet89/
 ### Installation
 
 ```bash
-cd Subnet89
 pip install -e .
 ```
 
@@ -44,12 +43,12 @@ python neurons/validator.py --wallet.name <your-wallet> --wallet.hotkey <your-ho
 
 ## Development
 
-This template provides the basic structure for a Bittensor subnet. You'll need to:
+Key files for customization:
 
-1. **Define your protocol**: Modify `template/protocol.py` to define the synapses (communication protocol) for your subnet
-2. **Implement miner logic**: Update `neurons/miner.py` with your miner's response logic
-3. **Implement validator logic**: Update `neurons/validator.py` with your validation and scoring logic
-4. **Configure parameters**: Adjust settings in `config/config.py`
+- `template/protocol.py` – define the communication protocol
+- `neurons/miner.py` – miner logic
+- `neurons/validator.py` – validator logic
+- `config/config.py` – runtime configuration
 
 ## Key Components
 
