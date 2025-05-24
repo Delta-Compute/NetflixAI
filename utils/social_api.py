@@ -32,6 +32,10 @@ class SocialAPIClient:
         """Retrieve text content for a post."""
         raise NotImplementedError
 
+    def get_post_time(self, post_id: str) -> float:
+        """Retrieve the post creation timestamp."""
+        raise NotImplementedError
+
 
 PLATFORMS: Dict[str, Type[SocialAPIClient]] = {}
 
@@ -52,6 +56,10 @@ class YouTubeAPIClient(SocialAPIClient):
         self._wait_rate_limit()
         return ""
 
+    def get_post_time(self, post_id: str) -> float:
+        self._wait_rate_limit()
+        return time.time()
+
 
 class TikTokAPIClient(SocialAPIClient):
     """Client for TikTok API."""
@@ -68,6 +76,10 @@ class TikTokAPIClient(SocialAPIClient):
         self._wait_rate_limit()
         return ""
 
+    def get_post_time(self, post_id: str) -> float:
+        self._wait_rate_limit()
+        return time.time()
+
 
 class InstagramAPIClient(SocialAPIClient):
     """Client for Instagram API."""
@@ -83,6 +95,10 @@ class InstagramAPIClient(SocialAPIClient):
     def get_post_text(self, post_id: str) -> str:
         self._wait_rate_limit()
         return ""
+
+    def get_post_time(self, post_id: str) -> float:
+        self._wait_rate_limit()
+        return time.time()
 
 
 PLATFORMS["youtube"] = YouTubeAPIClient
