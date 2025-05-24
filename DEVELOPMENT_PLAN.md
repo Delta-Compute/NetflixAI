@@ -20,8 +20,8 @@
 - **Use existing patterns** - check completed code for consistency
 
 ### Last Updated:
-- **Task**: 005
-- **Time**: 2025-05-24T16:13:59Z
+- **Task**: 025
+- **Time**: 2025-05-24T16:32:17Z
 - **Agent**: ChatGPT
 
 ---
@@ -35,26 +35,26 @@
 - [x] 003. Add post_id and platform fields to VideoMetadata
 - [x] 004. Add title and description fields to VideoMetadata
 - [x] 005. Add duration_seconds and file_size_bytes to VideoMetadata
-- [ ] 006. Add mime_type field to VideoMetadata
-- [ ] 007. Set required_hash_fields for VideoMetadata
-- [ ] 008. Create VideoSubmissionSynapse class skeleton
-- [ ] 009. Add video_metadata field to VideoSubmissionSynapse
-- [ ] 010. Add submission_id field to VideoSubmissionSynapse
-- [ ] 011. Add miner_uid and timestamp fields to VideoSubmissionSynapse
-- [ ] 012. Add status field using VideoSubmissionStatus enum
-- [ ] 013. Add standard synapse fields (successfully_processed, error_message, computed_body_hash)
-- [ ] 014. Set required_hash_fields for VideoSubmissionSynapse
-- [ ] 015. Create VideoValidationSynapse class skeleton
-- [ ] 016. Add submission_id and validation_type fields to VideoValidationSynapse
-- [ ] 017. Add validation_result and score fields to VideoValidationSynapse
-- [ ] 018. Add standard synapse fields to VideoValidationSynapse
-- [ ] 019. Set required_hash_fields for VideoValidationSynapse
-- [ ] 020. Create EngagementMetricsSynapse class skeleton
-- [ ] 021. Add post_id and platform fields to EngagementMetricsSynapse
-- [ ] 022. Add views, likes, comments fields to EngagementMetricsSynapse
-- [ ] 023. Add shares and engagement_rate fields to EngagementMetricsSynapse
-- [ ] 024. Add timestamp and standard fields to EngagementMetricsSynapse
-- [ ] 025. Set required_hash_fields for EngagementMetricsSynapse
+- [x] 006. Add mime_type field to VideoMetadata
+- [x] 007. Set required_hash_fields for VideoMetadata
+- [x] 008. Create VideoSubmissionSynapse class skeleton
+- [x] 009. Add video_metadata field to VideoSubmissionSynapse
+- [x] 010. Add submission_id field to VideoSubmissionSynapse
+- [x] 011. Add miner_uid and timestamp fields to VideoSubmissionSynapse
+- [x] 012. Add status field using VideoSubmissionStatus enum
+- [x] 013. Add standard synapse fields (successfully_processed, error_message, computed_body_hash)
+- [x] 014. Set required_hash_fields for VideoSubmissionSynapse
+- [x] 015. Create VideoValidationSynapse class skeleton
+- [x] 016. Add submission_id and validation_type fields to VideoValidationSynapse
+- [x] 017. Add validation_result and score fields to VideoValidationSynapse
+- [x] 018. Add standard synapse fields to VideoValidationSynapse
+- [x] 019. Set required_hash_fields for VideoValidationSynapse
+- [x] 020. Create EngagementMetricsSynapse class skeleton
+- [x] 021. Add post_id and platform fields to EngagementMetricsSynapse
+- [x] 022. Add views, likes, comments fields to EngagementMetricsSynapse
+- [x] 023. Add shares and engagement_rate fields to EngagementMetricsSynapse
+- [x] 024. Add timestamp and standard fields to EngagementMetricsSynapse
+- [x] 025. Set required_hash_fields for EngagementMetricsSynapse
 
 ### Phase 2: Utils - IPFS Client
 
