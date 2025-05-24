@@ -28,6 +28,10 @@ class SocialAPIClient:
         """Retrieve metrics for a post."""
         raise NotImplementedError
 
+    def get_post_text(self, post_id: str) -> str:
+        """Retrieve text content for a post."""
+        raise NotImplementedError
+
 
 PLATFORMS: Dict[str, Type[SocialAPIClient]] = {}
 
@@ -44,6 +48,10 @@ class YouTubeAPIClient(SocialAPIClient):
         # Placeholder response
         return {"views": 0, "likes": 0, "comments": 0, "shares": 0}
 
+    def get_post_text(self, post_id: str) -> str:
+        self._wait_rate_limit()
+        return ""
+
 
 class TikTokAPIClient(SocialAPIClient):
     """Client for TikTok API."""
@@ -56,6 +64,10 @@ class TikTokAPIClient(SocialAPIClient):
         self._wait_rate_limit()
         return {"views": 0, "likes": 0, "comments": 0, "shares": 0}
 
+    def get_post_text(self, post_id: str) -> str:
+        self._wait_rate_limit()
+        return ""
+
 
 class InstagramAPIClient(SocialAPIClient):
     """Client for Instagram API."""
@@ -67,6 +79,10 @@ class InstagramAPIClient(SocialAPIClient):
     def get_post_metrics(self, post_id: str) -> Dict:
         self._wait_rate_limit()
         return {"views": 0, "likes": 0, "comments": 0, "shares": 0}
+
+    def get_post_text(self, post_id: str) -> str:
+        self._wait_rate_limit()
+        return ""
 
 
 PLATFORMS["youtube"] = YouTubeAPIClient
