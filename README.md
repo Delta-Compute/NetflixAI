@@ -77,6 +77,22 @@ To use testnet:
 export BT_NETWORK=test
 ```
 
+## Running the API Server
+
+The project includes a lightweight FastAPI server for simple file submissions.
+You can start it with `uvicorn`:
+
+```bash
+uvicorn utils.api_server:app --reload
+```
+
+The server exposes the following endpoints:
+
+- `POST /submit` – upload a video file
+- `GET /status` – service status
+- `GET /metrics` – basic metrics
+- `GET /health` – health check
+
 ## License
 
 MIT License - see LICENSE file for details
