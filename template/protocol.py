@@ -2,8 +2,17 @@
 # Copyright © 2024 Your Organization
 
 import typing
+from enum import Enum
 import bittensor as bt
 from pydantic import Field
+
+
+class VideoSubmissionStatus(Enum):
+    """Status values for video submission lifecycle."""
+    PENDING = "pending"
+    VALIDATING = "validating"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 class QuerySynapse(bt.Synapse):
     """
