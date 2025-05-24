@@ -19,6 +19,8 @@ class VideoMetadata(bt.Synapse):
     """Metadata information for a submitted video."""
 
     ipfs_hash: str = Field("", title="IPFS Hash", frozen=False)
+    post_id: str = Field("", title="Post ID", frozen=False)
+    platform: str = Field("", title="Platform", frozen=False)
 
 class QuerySynapse(bt.Synapse):
     """
