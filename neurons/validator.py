@@ -8,6 +8,11 @@ import random
 import bittensor as bt
 from typing import List, Dict
 from template.protocol import QuerySynapse, DataSynapse
+from utils.ipfs_client import IPFSClient
+from utils.storage_manager import StorageManager
+from utils.video_processor import VideoProcessor
+from utils.ai_models import ModelManager
+from utils.social_api import PLATFORMS
 
 class Validator:
     """
@@ -19,6 +24,14 @@ class Validator:
         self.config = config or self.get_config()
         self.setup_logging()
         self.setup_bittensor()
+
+        gateway = getattr(self.config, "ipfs_gateway", "http://localhost:5001")
+        self.ipfs = IPFSClient(gateway)
+        self.storage = StorageManager("validator_storage")
+        self.video_processor = VideoProcessor()
+        self.models = ModelManager()
+
+        self.download_queue: asyncio.Queue[dict] = asyncio.Queue()
         self.scores = {}
         
     def get_config(self):
@@ -47,7 +60,7 @@ class Validator:
         self.subtensor = bt.subtensor(config=self.config)
         self.metagraph = self.subtensor.metagraph(self.config.netuid)
         self.dendrite = bt.dendrite(wallet=self.wallet)
-        
+
         # Initialize scores for all miners
         for uid in range(len(self.metagraph.uids)):
             self.scores[uid] = 0.0
@@ -142,6 +155,36 @@ class Validator:
                 
         except Exception as e:
             bt.logging.error(f"Error setting weights: {e}")
+
+    async def handle_submission(self, submission: Dict) -> None:
+        """Download and validate a video submission."""
+        ipfs_hash = submission.get("ipfs_hash")
+        local_path = self.storage.get_storage_path(f"{ipfs_hash}.mp4")
+        self.ipfs.download_file(ipfs_hash, local_path)
+
+        meta = self.video_processor.get_video_metadata(local_path)
+        deepfake_score = self.models.deepfake_detect(local_path)
+        quality = self.models.quality_score(local_path)
+
+        submission.update(
+            {
+                "metadata": meta,
+                "deepfake_score": deepfake_score,
+                "quality": quality,
+                "status": "validated",
+            }
+        )
+
+    def quality_score(self, submission: Dict) -> float:
+        return float(submission.get("quality", 0))
+
+    async def poll_engagement(self, post_id: str, platform: str) -> Dict:
+        client_cls = PLATFORMS.get(platform)
+        if not client_cls:
+            return {}
+        client = client_cls()
+        client.authenticate()
+        return client.get_post_metrics(post_id)
             
     async def run_validation_loop(self):
         """Main validation loop."""
@@ -170,13 +213,21 @@ class Validator:
                     # Score responses
                     self.score_responses(responses, active_uids)
                     
-                    # Set weights periodically
-                    if step % 100 == 0:
-                        self.set_weights()
                 else:
                     bt.logging.warning("No active miners found")
                     
                 step += 1
+                # Process queued submissions
+                if not self.download_queue.empty():
+                    submission = await self.download_queue.get()
+                    try:
+                        await self.handle_submission(submission)
+                    except Exception as e:
+                        bt.logging.error(f"Validation error: {e}")
+
+                if step % 100 == 0:
+                    self.set_weights()
+
                 await asyncio.sleep(12)  # Sleep for one block
                 
             except KeyboardInterrupt:
