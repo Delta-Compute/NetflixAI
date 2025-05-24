@@ -68,3 +68,9 @@ async def metrics() -> dict:
     """Return dummy metrics."""
     return {"uptime": 0}
 
+
+@app.get("/health")
+async def health() -> dict:
+    """Simple health check."""
+    return {"ok": True}
+

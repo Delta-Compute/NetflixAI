@@ -2,6 +2,9 @@
 
 A Bittensor subnet template for building decentralized applications.
 
+This repository showcases an AI-driven video validation pipeline with IPFS
+storage and social engagement tracking.
+
 ## Overview
 
 This is a basic template for Subnet 89 on the Bittensor network. It includes the essential components needed to build and deploy miners and validators.
