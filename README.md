@@ -1,8 +1,8 @@
-# Subnet 89
+# Subnet 369
 
 An AI-driven video streaming platform built on Bittensor.
 
-This repository contains both the Subnet 89 implementation and the user-facing
+This repository contains both the Subnet 369 implementation and the user-facing
 application, including miners, validators, and an API server.
 
 ## Overview
@@ -68,7 +68,7 @@ Key files for customization:
 ## Network Configuration
 
 By default, this subnet uses:
-- Network ID: 89
+- Network ID: 369
 - Network: finney (mainnet)
 
 To use testnet:

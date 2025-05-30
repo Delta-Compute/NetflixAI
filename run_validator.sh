@@ -4,7 +4,7 @@
 # Default values
 WALLET_NAME="${WALLET_NAME:-default}"
 WALLET_HOTKEY="${WALLET_HOTKEY:-default}"
-NETUID="${NETUID:-89}"
+NETUID="${NETUID:-369}"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -28,7 +28,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "Starting Subnet 89 Validator..."
+echo "Starting Subnet 369 Validator..."
 echo "Wallet: $WALLET_NAME"
 echo "Hotkey: $WALLET_HOTKEY"
 echo "Netuid: $NETUID"

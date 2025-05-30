@@ -1,4 +1,4 @@
-"""FastAPI server for subnet 89."""
+"""FastAPI server for subnet 369."""
 
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware

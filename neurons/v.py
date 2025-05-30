@@ -1,62 +1,70 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-
+# Copyright © 2024 Your Organization
 
 import time
-import os
-import threading
-import bittensor as bt
-import random
+import torch
 import asyncio
-
-from streaming.base.validator import BaseValidatorNeuron
-from streaming.validator import forward
-from core.auto_update import run_auto_update
-from template.protocol import QuerySynapse, DataSynapse
+import random
+import bittensor as bt
 from typing import List, Dict
+from template.protocol import QuerySynapse, DataSynapse
+from utils.ipfs_client import IPFSClient
+from utils.video_processor import VideoProcessor
+from utils.storage_manager import StorageManager
+from utils.ai_models import ModelManager
 from utils.social_api import PLATFORMS
 
-class Validator(BaseValidatorNeuron):
+class Validator:
     """
     Basic validator class for Subnet 369.
     This validator queries miners and sets weights based on their responses.
     """
-
+    
     def __init__(self, config=None):
-        super(Validator, self).__init__(config=config)
+        self.config = config or self.get_config()
+        self.setup_logging()
+        self.setup_bittensor()
 
-        # Initialize wandb only if disable_set_weights is False
-        if not self.config.neuron.disable_set_weights:
-            try:
-                wandb.init(
-                    entity="streaming_network",
-                    project=WANDB_PROJECT,
-                    name=f"validator-{self.uid}-{__version__}",
-                    config=self.config,
-                    reinit=True
-                )
-            except Exception as e:
-                bt.logging.error(f"Failed to initialize wandb run: {e}")
+        gateway = getattr(self.config, "ipfs_gateway", "http://localhost:5001")
+        self.ipfs = IPFSClient(gateway)
+        self.storage = StorageManager("validator_storage")
+        self.video_processor = VideoProcessor()
+        self.models = ModelManager()
 
-        bt.logging.info("load_state()")
-        self.load_state()
+        self.download_queue: asyncio.Queue[dict] = asyncio.Queue()
+        self.scores = {}
+        
+    def get_config(self):
+        """Setup configuration for the validator."""
+        parser = bt.ArgumentParser()
+        parser.add_argument('--netuid', type=int, default=369, help='Subnet netuid')
+        parser.add_argument('--logging.debug', action='store_true', help='Enable debug logging')
+        parser.add_argument('--logging.trace', action='store_true', help='Enable trace logging')
+        parser.add_argument('--query_timeout', type=int, default=10, help='Query timeout in seconds')
+        
+        bt.subtensor.add_args(parser)
+        bt.logging.add_args(parser)
+        bt.wallet.add_args(parser)
+        
+        config = bt.config(parser)
+        return config
+        
+    def setup_logging(self):
+        """Initialize logging."""
+        bt.logging(config=self.config, logging_dir=self.config.full_path)
+        bt.logging.info(f"Running validator on subnet: {self.config.netuid}")
+        
+    def setup_bittensor(self):
+        """Setup wallet, subtensor, and metagraph."""
+        self.wallet = bt.wallet(config=self.config)
+        self.subtensor = bt.subtensor(config=self.config)
+        self.metagraph = self.subtensor.metagraph(self.config.netuid)
+        self.dendrite = bt.dendrite(wallet=self.wallet)
 
+        # Initialize scores for all miners
+        for uid in range(len(self.metagraph.uids)):
+            self.scores[uid] = 0.0
+            
     async def query_miners(self, axons: List[bt.axon]) -> List[QuerySynapse]:
         """Query a list of miners with a test query."""
         # Create a sample query
@@ -114,7 +122,40 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.error(f"Error scoring UID {uid}: {e}")
                 self.scores[uid] = 0.9 * self.scores[uid]
                 
-    
+    def set_weights(self):
+        """Set weights on the blockchain based on miner scores."""
+        try:
+            # Get all UIDs and their scores
+            uids = list(self.scores.keys())
+            scores = list(self.scores.values())
+            
+            # Normalize scores
+            if sum(scores) > 0:
+                weights = [score / sum(scores) for score in scores]
+            else:
+                weights = [1.0 / len(scores) for _ in scores]
+                
+            # Convert to tensors
+            uids_tensor = torch.tensor(uids, dtype=torch.int64)
+            weights_tensor = torch.tensor(weights, dtype=torch.float32)
+            
+            # Set weights on chain
+            success = self.subtensor.set_weights(
+                netuid=self.config.netuid,
+                wallet=self.wallet,
+                uids=uids_tensor,
+                weights=weights_tensor,
+                wait_for_inclusion=False
+            )
+            
+            if success:
+                bt.logging.info("Successfully set weights on chain")
+            else:
+                bt.logging.error("Failed to set weights on chain")
+                
+        except Exception as e:
+            bt.logging.error(f"Error setting weights: {e}")
+
     async def handle_submission(self, submission: Dict) -> None:
         """Download and validate a video submission."""
         ipfs_hash = submission.get("ipfs_hash")
@@ -144,8 +185,8 @@ class Validator(BaseValidatorNeuron):
         client = client_cls()
         client.authenticate()
         return client.get_post_metrics(post_id)
-
-async def run_validation_loop(self):
+            
+    async def run_validation_loop(self):
         """Main validation loop."""
         step = 0
         while True:
@@ -196,28 +237,21 @@ async def run_validation_loop(self):
                 bt.logging.error(f"Error in validation loop: {e}")
                 await asyncio.sleep(12)
                 
-def run(self):
-    """Main entry point for the validator."""
-    bt.logging.info("Starting validator...")
-    
-    # Check wallet registration
-    if self.wallet.hotkey.ss58_address not in self.metagraph.hotkeys:
-        bt.logging.error("Validator wallet not registered on subnet")
-        return
+    def run(self):
+        """Main entry point for the validator."""
+        bt.logging.info("Starting validator...")
         
-    my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
-    bt.logging.info(f"Validator running with UID: {my_uid}")
-    
-    # Run the async validation loop
-    asyncio.run(self.run_validation_loop())
+        # Check wallet registration
+        if self.wallet.hotkey.ss58_address not in self.metagraph.hotkeys:
+            bt.logging.error("Validator wallet not registered on subnet")
+            return
+            
+        my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
+        bt.logging.info(f"Validator running with UID: {my_uid}")
+        
+        # Run the async validation loop
+        asyncio.run(self.run_validation_loop())
 
 if __name__ == "__main__":
-
-    # Start the auto-update loop in a separate thread
-    with Validator() as validator:
-        update_thread = threading.Thread(target=run, args=(validator.config,), daemon=True)
-        update_thread.start()
-
-        while True:
-            bt.logging.info(f"Validator running | uid {validator.uid} | {time.time()}")
-            time.sleep(30)
+    validator = Validator()
+    validator.run()

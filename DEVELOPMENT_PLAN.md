@@ -132,7 +132,7 @@
 - [x] 086. Update miner.py imports for new utils
 - [x] 087. Add IPFS client initialization in __init__
 - [x] 088. Create video submission queue
-- [x] 089. Add handle_video_submission method signature
+- [x] 0369. Add handle_video_submission method signature
 - [x] 090. Implement video validation logic
 - [x] 091. Add IPFS upload integration
 - [x] 092. Create submission tracking dictionary
@@ -256,7 +256,7 @@
 - [x] 186. Create TROUBLESHOOTING.md
 - [x] 187. Add architecture diagrams
 - [x] 188. Create configuration examples
-- [x] 189. Add video format specifications
+- [x] 1369. Add video format specifications
 - [x] 190. Create scoring algorithm documentation
 
 ### Phase 15: Deployment & DevOps
@@ -305,7 +305,7 @@
 
 ### File Structure:
 ```
-Subnet89/
+Subnet369/
 ├── template/protocol.py      # Synapse definitions
 ├── neurons/
 │   ├── miner.py            # Miner implementation

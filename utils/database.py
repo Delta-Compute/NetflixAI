@@ -10,7 +10,7 @@ import time
 class Database:
     """Lightweight SQLite database wrapper."""
 
-    def __init__(self, db_path: str = "subnet89.db", pool_size: int = 5) -> None:
+    def __init__(self, db_path: str = "subnet369.db", pool_size: int = 5) -> None:
         self.db_path = db_path
         self._pool: list[sqlite3.Connection] = [
             sqlite3.connect(self.db_path) for _ in range(pool_size)

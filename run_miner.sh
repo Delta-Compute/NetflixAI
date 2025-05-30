@@ -4,7 +4,7 @@
 # Default values
 WALLET_NAME="${WALLET_NAME:-default}"
 WALLET_HOTKEY="${WALLET_HOTKEY:-default}"
-NETUID="${NETUID:-89}"
+NETUID="${NETUID:-369}"
 AXON_PORT="${AXON_PORT:-8091}"
 
 # Parse command line arguments
@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "Starting Subnet 89 Miner..."
+echo "Starting Subnet 369 Miner..."
 echo "Wallet: $WALLET_NAME"
 echo "Hotkey: $WALLET_HOTKEY"
 echo "Netuid: $NETUID"

@@ -18,14 +18,14 @@ if os.path.exists(readme_path):
         long_description = f.read()
 
 setup(
-    name="subnet89",
+    name="subnet369",
     version="0.1.0",
-    description="Subnet 89 - A Bittensor subnet template",
+    description="Subnet 369 - A Bittensor subnet template",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Your Organization",
     author_email="your-email@example.com",
-    url="https://github.com/yourusername/subnet89",
+    url="https://github.com/yourusername/subnet369",
     packages=find_packages(),
     install_requires=requirements,
     python_requires=">=3.8",
@@ -41,8 +41,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "subnet89-miner=neurons.miner:main",
-            "subnet89-validator=neurons.validator:main",
+            "subnet369-miner=neurons.miner:main",
+            "subnet369-validator=neurons.validator:main",
         ],
     },
 )

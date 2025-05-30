@@ -3,48 +3,88 @@
 
 import time
 import typing
-import bittensor as bt
-import threading
 import asyncio
-
-from streaming.base.miner import BaseMinerNeuron
-from template.protocol import VideoSubmissionSynapse
-from core.auto_update import run_auto_update
+from collections import deque
+import bittensor as bt
+import argparse
 from template.protocol import QuerySynapse, DataSynapse
 from utils.ipfs_client import IPFSClient
 from utils.video_processor import VideoProcessor
+from utils.storage_manager import StorageManager
 
-class Miner(BaseMinerNeuron):
+class Miner:
     """
     Basic miner class for Subnet 369.
     This miner responds to queries from validators.
     """
+
     def __init__(self, config=None):
-        super(Miner, self).__init__(config=config)
-        # self.config = config or self.config()
-        
-        # print("~~~~~^^^~~~~~", config)
-        # bt.logging.info(config)
+        self.config = config or self.get_config()
+        self.setup_logging()
+        self.setup_bittensor()
+        self.setup_axon()
 
-        if self.config.dev_mode:
-            bt.logging.info("DEV MODE ENABLED")
-    
-    async def forward(
-        self, synapse: VideoSubmissionSynapse
-    ) -> VideoSubmissionSynapse:
-        """
-        Processes the incoming AccessTokenSynapse by loading an access token using token management logic.
-        
-        Args:
-            synapse (template.protocol.AccessTokenSynapse): The synapse object representing the token request.
-        
-        Returns:
-            template.protocol.AccessTokenSynapse: The same synapse object with the access token set.
-        """
-        # Use token_mgmt logic to load (and refresh if needed) the access token.
-        # synapse.YT_access_token = token_mgmt.load_token()
-        return synapse
+        # IPFS client and helpers
+        # print(f"config => {self.config}")
+        gateway = getattr(self.config, "ipfs_gateway", "http://localhost:5001")
+        # print(f"gateway => {gateway}")
+        self.ipfs = IPFSClient(gateway)
+        self.video_processor = VideoProcessor()
+        self.storage = StorageManager("miner_storage")
 
+        # Submission handling
+        self.submission_queue: asyncio.Queue[str] = asyncio.Queue()
+        self.submissions: dict[str, dict] = {}
+        self.recent_hashes: set[str] = set()
+        self.last_submission_time = 0.0
+        
+    def get_config(self):
+        """Setup configuration for the miner."""
+        # parser = bt.ArgumentParser()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--netuid', type=int, default=369, help='Subnet netuid')
+        parser.add_argument('--logging.debug', action='store_true', help='Enable debug logging')
+        parser.add_argument('--logging.trace', action='store_true', help='Enable trace logging')
+        parser.add_argument('--axon.port', type=int, default=8098, help='Port for the axon server')
+        parser.add_argument('--ipfs_gateway', type=str, default='http://localhost:5001', help='IPFS gateway endpoint')
+        parser.add_argument('--subtensor.chain_endpoint ', type=str, default='ws://127.0.0.1:9945', help='Subtensor chain endpoint')
+        
+        bt.subtensor.add_args(parser)
+        bt.logging.add_args(parser)
+        bt.wallet.add_args(parser)
+        bt.axon.add_args(parser)
+        
+        config = bt.config(parser)
+        return config
+        
+    def setup_logging(self):
+        """Initialize logging."""
+        bt.logging(config=self.config, logging_dir=self.config.full_path)
+        bt.logging.info(f"Running miner on subnet: {self.config.netuid}")
+
+        
+    def setup_bittensor(self):
+        """Setup wallet, subtensor, and metagraph."""
+        self.wallet = bt.wallet(config=self.config)
+        self.subtensor = bt.subtensor(config=self.config)
+        self.metagraph = self.subtensor.metagraph(self.config.netuid)
+        #print(f"metagraph => {self.metagraph.hotkeys}")
+        
+    def setup_axon(self):
+        """Setup the axon server with request handlers."""
+        self.axon = bt.axon(wallet=self.wallet, config=self.config)
+        
+        # Attach handlers for different synapse types
+        self.axon.attach(
+            forward_fn=self.handle_query,
+            blacklist_fn=self.blacklist_query,
+            priority_fn=self.priority_query
+        ).attach(
+            forward_fn=self.handle_data,
+            blacklist_fn=self.blacklist_data,
+            priority_fn=self.priority_data
+        )
+        
     async def handle_query(self, synapse: QuerySynapse) -> QuerySynapse:
         """Handle incoming query requests from validators."""
         try:
@@ -143,10 +183,9 @@ class Miner(BaseMinerNeuron):
         for key in list(self.submissions.keys()):
             if self.submissions[key]["time"] < cutoff:
                 self.submissions.pop(key, None)
-    
+        
     async def run_loop(self):
         """Main loop for the miner."""
-        print("Start miner...")
         bt.logging.info("Starting miner...")
         print(f"Starting miner...")
         # Start the axon server
@@ -197,8 +236,8 @@ class Miner(BaseMinerNeuron):
         self.axon.stop()
         bt.logging.info("Miner stopped")
 
-def run(self):
-    asyncio.run(self.run_loop())   
+    def run(self):
+        asyncio.run(self.run_loop())   
 
 if __name__ == "__main__":
     miner = Miner()

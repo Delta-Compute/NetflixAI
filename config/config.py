@@ -6,12 +6,12 @@ from typing import Dict, Any
 
 class Config:
     """
-    Configuration class for Subnet 89.
+    Configuration class for Subnet 369.
     Centralizes all configuration parameters.
     """
     
     # Network configuration
-    NETUID = 89
+    NETUID = 369
     NETWORK = os.environ.get("BT_NETWORK", "finney")  # finney, test, local
     
     # Timing configuration
@@ -56,7 +56,7 @@ class Config:
     RATE_LIMIT_PERIOD = int(os.environ.get("RATE_LIMIT_PERIOD", 60))
 
     # Database configuration
-    DB_CONNECTION_STRING = os.environ.get("DB_CONNECTION_STRING", "subnet89.db")
+    DB_CONNECTION_STRING = os.environ.get("DB_CONNECTION_STRING", "subnet369.db")
     
     # Scoring configuration
     SCORE_DECAY_FACTOR = 0.9
